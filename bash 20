@@ -1,0 +1,11 @@
+# Installer Node
+npm install
+
+# Installer Python dependencies
+pip install -r requirements.txt
+
+# Tren modell første gang
+python ai/train_cnn_lstm_auto.py
+
+# Start backend
+npm start
