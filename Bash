@@ -1,0 +1,14 @@
+aksje-ai-live-auto/
+├── backend/
+│   └── server.js
+├── ai/
+│   ├── train_cnn_lstm_auto.py
+│   ├── predict.py
+│   └── model.h5
+├── public/
+│   ├── index.html
+│   ├── style.css
+│   └── app.js
+├── uploads/
+├── package.json
+└── requirements.txt
