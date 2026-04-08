@@ -1,0 +1,56 @@
+import tensorflow as tf
+from tensorflow.keras import layers, models
+import numpy as np
+import pandas as pd
+import yfinance as yf
+import matplotlib.pyplot as plt
+from io import BytesIO
+from PIL import Image
+# Funksjon: hent ticker og lag grafbilde
+def generate_graph_image(ticker):
+    data = yf.download(ticker, period="1mo", interval="1d")
+    plt.figure(figsize=(2,2))
+    plt.plot(data['Close'], color='green')
+    plt.axis('off')
+    buf = BytesIO()
+    plt.savefig(buf, format='png')
+    plt.close()
+    buf.seek(0)
+    img = Image.open(buf).convert('RGB')
+    img = img.resize((128,128))
+    return np.array(img)/255.0
+# Dummy tickers for trening
+tickers_up = ["AAPL","MSFT","GOOG"]
+tickers_down = ["TSLA","AMC","NOK"]
+X_cnn = []
+y = []
+for t in tickers_up:
+    X_cnn.append(generate_graph_image(t))
+    y.append(1)  # 1 = opp
+for t in tickers_down:
+    X_cnn.append(generate_graph_image(t))
+    y.append(0)  # 0 = ned
+X_cnn = np.array(X_cnn)
+y = np.array(y)
+# Dummy LSTM-sekvenser
+X_seq = np.random.rand(len(y), 20, 1)  # 20 dager dummy
+# LSTM modell
+lstm_input = layers.Input(shape=(X_seq.shape[1],1))
+lstm_out = layers.LSTM(32)(lstm_input)
+cnn_input = layers.Input(shape=(128,128,3))
+cnn_model = models.Sequential([
+    layers.Conv2D(32,3,activation='relu'),
+    layers.MaxPooling2D(),
+    layers.Conv2D(64,3,activation='relu'),
+    layers.MaxPooling2D(),
+    layers.Flatten(),
+    layers.Dense(64,activation='relu')
+])
+cnn_out = cnn_model(cnn_input)
+combined = layers.concatenate([cnn_out,lstm_out])
+out = layers.Dense(2, activation='softmax')(combined)
+model = models.Model(inputs=[cnn_input,lstm_input], outputs=out)
+model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+model.fit([X_cnn, X_seq], y, epochs=5)
+model.save("ai/model.h5")
+print("Automatisk CNN+LSTM modell lagret!")
