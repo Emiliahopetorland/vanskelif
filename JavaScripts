@@ -1,0 +1,19 @@
+const express = require("express");
+const cors = require("cors");
+const { exec } = require("child_process");
+const path = require("path");
+const app = express();
+app.use(cors());
+app.use(express.json());
+app.use(express.static(path.join(__dirname, "../public")));
+app.post("/predict", (req,res)=>{
+    const ticker = req.body.ticker;
+    exec(`python ai/predict.py ${ticker}`, (err, stdout)=>{
+        if(err) return res.json({error:"AI feilet"});
+        const trend = stdout.trim();
+        const upChance = trend==="UP"?80:20;
+        const downChance = 100-upChance;
+        res.json({trend, upChance, downChance});
+    });
+});
+app.listen(3000,()=>console.log("Server kjører på http://localhost:3000"));
