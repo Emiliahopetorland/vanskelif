@@ -1,0 +1,17 @@
+async function predict(){
+    const ticker = document.getElementById("ticker").value;
+    if(!ticker) return alert("Skriv inn ticker!");
+    const res = await fetch("/predict",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({ticker})
+    });
+    const data = await res.json();
+    const resultDiv = document.getElementById("result");
+    if(data.error) resultDiv.innerText = data.error;
+    else resultDiv.innerHTML = `
+        <h2>${data.trend}</h2>
+        📈 Opp: ${data.upChance}%<br>
+        📉 Ned: ${data.downChance}%
+    `;
+}
